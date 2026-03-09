@@ -37,7 +37,7 @@ function searchDonor() {
     let city = document.getElementById("rcity").value;
 
     db.collection("donors")
-    .get()
+    .onSnapshot((querySnapshot) => {
     .then((querySnapshot) => {
         let result = "";
         querySnapshot.forEach((doc) => {
@@ -68,9 +68,46 @@ function searchDonor() {
         });
         document.getElementById("result").innerHTML = result;
     })
-    .catch((error) => {
-        console.error("Error searching donors: ", error);
+    db.collection("donors")
+.onSnapshot((querySnapshot) => {
+
+    let result = "";
+
+    querySnapshot.forEach((doc) => {
+        let d = doc.data();
+        let id = doc.id;
+
+        if(d.blood === blood && d.city.toLowerCase() === city.toLowerCase()){
+
+            if(!d.request){
+                result += `
+                Donor: ${d.name}<br>
+                Blood: ${d.blood}<br>
+                City: ${d.city}<br>
+                Phone: Hidden<br>
+                <button onclick="sendRequest('${id}')">Request Blood</button><br><br>
+                `;
+            }
+
+            else if(d.request && !d.accepted){
+                result += `Request sent to ${d.name} (Waiting for donor approval)<br><br>`;
+            }
+
+            else if(d.accepted){
+                result += `
+                Donor: ${d.name}<br>
+                Blood: ${d.blood}<br>
+                City: ${d.city}<br>
+                Phone: ${d.phone}<br>
+                You can call the donor<br><br>
+                `;
+            }
+        }
     });
+
+    document.getElementById("result").innerHTML = result;
+
+});
 }
 
 function sendRequest(docId){
@@ -212,6 +249,7 @@ function registerDonor() {
 
 </body>
 </html>
+
 
 
 
