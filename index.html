@@ -92,23 +92,19 @@ function showDonorPanel() {
     db.collection("donors")
     .where("request", "==", true)
     .where("accepted", "==", false)
-    .get()
-    .then((querySnapshot) => {
-        let panel = "";
-        querySnapshot.forEach((doc) => {
-            let d = doc.data();
-            let id = doc.id;
-
-            panel += `
-                Request received for ${d.name}<br>
-                <button onclick="acceptRequest('${id}')">Accept Request</button><br><br>
-            `;
-        });
-        document.getElementById("donorPanel").innerHTML = panel;
-    })
-    .catch((error) => {
-        console.error("Error showing donor panel: ", error);
-    });
+      .onSnapshot((querySnapshot) => {
+          let panel = "";
+          querySnapshot.forEach((doc) => {
+              let d = doc.data();
+              let id = doc.id;
+              panel += `
+                  Request received for ${d.name}<br>
+                  <button onclick="acceptRequest('${id}')">Accept Request</button><br><br>
+              `;
+          });
+          document.getElementById("donorPanel").innerHTML = panel;
+      });
+}
 }
   
 function acceptRequest(docId){
@@ -210,6 +206,7 @@ function registerDonor() {
 
 </body>
 </html>
+
 
 
 
