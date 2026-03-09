@@ -91,17 +91,20 @@ function sendRequest(docId){
 function showDonorPanel() {
     db.collection("donors")
     .where("request", "==", true)
-    .where("accepted", "==", false)
+    
       .onSnapshot((querySnapshot) => {
           let panel = "";
           querySnapshot.forEach((doc) => {
-              let d = doc.data();
-              let id = doc.id;
-              panel += `
-                  Request received for ${d.name}<br>
-                  <button onclick="acceptRequest('${id}')">Accept Request</button><br><br>
-              `;
-          });
+    let d = doc.data();
+    let id = doc.id;
+
+    if(!d.accepted){
+        panel += `
+            Request received for ${d.name}<br>
+            <button onclick="acceptRequest('${id}')">Accept Request</button><br><br>
+        `;
+    }
+});
           document.getElementById("donorPanel").innerHTML = panel;
       });
 }
@@ -209,6 +212,7 @@ function registerDonor() {
 
 </body>
 </html>
+
 
 
 
