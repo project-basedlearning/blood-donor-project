@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Blood Donor Finder</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f2f2f2;
+text-align:center;
+}
+
+.box{
+background:white;
+width:350px;
+margin:20px auto;
+padding:20px;
+border-radius:10px;
+}
+
+button{
+padding:8px;
+background:red;
+color:white;
+border:none;
+cursor:pointer;
+}
+
+</style>
+
+<script>
+
+let donors=[]
+
+function registerDonor(){
+
+let name=document.getElementById("name").value
+let blood=document.getElementById("blood").value
+let city=document.getElementById("city").value
+let phone=document.getElementById("phone").value
+
+donors.push({name,blood,city,phone,request:false,accepted:false})
+
+alert("Donor registered!")
+
+}
+
+function searchDonor(){
+
+let blood=document.getElementById("rblood").value
+let city=document.getElementById("rcity").value
+
+let result=""
+
+for(let i=0;i<donors.length;i++){
+
+let d=donors[i]
+
+if(d.blood==blood && d.city==city){
+
+if(!d.request){
+
+result+="Donor: "+d.name+
+"<br>Blood: "+d.blood+
+"<br>City: "+d.city+
+"<br>Phone: Hidden<br>"+
+"<button onclick='sendRequest("+i+")'>Request Blood</button><br><br>"
+
+}
+
+else if(d.request && !d.accepted){
+
+result+="Request sent to "+d.name+" (Waiting for donor approval)<br><br>"
+
+}
+
+else if(d.accepted){
+
+result+="Donor: "+d.name+
+"<br>Blood: "+d.blood+
+"<br>City: "+d.city+
+"<br>Phone: "+d.phone+
+"<br>You can call the donor<br><br>"
+
+}
+
+}
+
+}
+
+document.getElementById("result").innerHTML=result
+
+}
+
+function sendRequest(i){
+
+donors[i].request=true
+
+alert("Request sent to donor!")
+
+showDonorPanel()
+
+}
+
+function showDonorPanel(){
+
+let panel=""
+
+for(let i=0;i<donors.length;i++){
+
+let d=donors[i]
+
+if(d.request && !d.accepted){
+
+panel+="Request received for "+d.name+
+"<br><button onclick='acceptRequest("+i+")'>Accept Request</button><br><br>"
+
+}
+
+}
+
+document.getElementById("donorPanel").innerHTML=panel
+
+}
+
+function acceptRequest(i){
+
+donors[i].accepted=true
+
+alert("Donor accepted the request!")
+
+searchDonor()
+
+}
+
+</script>
+
+</head>
+
+<body>
+
+<h1>Blood Donor Finder</h1>
+
+<div class="box">
+
+<h3>Donor Registration</h3>
+
+<input id="name" placeholder="Name"><br><br>
+<input id="blood" placeholder="Blood Group"><br><br>
+<input id="city" placeholder="City"><br><br>
+<input id="phone" placeholder="Phone Number"><br><br>
+
+<button onclick="registerDonor()">Register</button>
+
+</div>
+
+<div class="box">
+
+<h3>Receiver Search</h3>
+
+<input id="rblood" placeholder="Blood Group"><br><br>
+<input id="rcity" placeholder="City"><br><br>
+
+<button onclick="searchDonor()">Search</button>
+
+<p id="result"></p>
+
+</div>
+
+<div class="box">
+
+<h3>Donor Request Panel</h3>
+
+<p id="donorPanel"></p>
+
+</div>
+
+</body>
+</html>
