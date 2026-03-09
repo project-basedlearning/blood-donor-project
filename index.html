@@ -194,8 +194,31 @@ firebase.initializeApp(firebaseConfig);
 
 const db = firebase.firestore();
 
+function registerDonor() {
+
+  var name = document.getElementById("name").value;
+  var blood = document.getElementById("blood").value;
+  var city = document.getElementById("city").value;
+  var phone = document.getElementById("phone").value;
+
+  db.collection("donors").add({
+    name: name,
+    blood: blood,
+    city: city,
+    phone: phone
+  })
+  .then(function() {
+    alert("Donor Registered Successfully!");
+  })
+  .catch(function(error) {
+    alert("Error: " + error);
+  });
+
+}
+
 </script>
 
 </body>
 </html>
+
 
