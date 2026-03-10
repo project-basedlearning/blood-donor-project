@@ -174,7 +174,8 @@ function acceptRequest(docId){
 </div>
 
 <div class="box">
-
+<button onclick="showDonorPanel()">Check Requests</button>
+    
 <h3>Donor Request Panel</h3>
 
 <p id="donorPanel"></p>
@@ -197,7 +198,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 const db = firebase.firestore();
-showDonorPanel();
 
 function registerDonor() {
 
@@ -227,6 +227,7 @@ function registerDonor() {
 
 </body>
 </html>
+
 
 
 
