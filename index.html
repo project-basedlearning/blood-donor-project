@@ -32,6 +32,8 @@ cursor:pointer;
 
 <script>
 
+const COOLDOWN_MINUTES = 1;
+
 function searchDonor() {
 
     let blood = document.getElementById("rblood").value.toLowerCase().trim();
@@ -45,12 +47,19 @@ function searchDonor() {
 
             let d = doc.data();
             let id = doc.id;
+
+            let last = d.lastDonated || 0;
             let now = Date.now();
             let cooldownTime = COOLDOWN_MINUTES * 60 * 1000;
-            let isAvailable = (now - d.lastDonated) > cooldownTime;
 
-            if(d.blood.toLowerCase() === blood && d.city.toLowerCase() === city && isAvailable){
-                if(!d.request){
+            let isAvailable = (now - last) > cooldownTime;
+
+            if(d.blood && d.city &&
+               d.blood.toLowerCase() === blood &&
+               d.city.toLowerCase() === city){
+
+                // CASE 1: Not requested
+                if(!d.request && isAvailable){
 
                     result += `
                     Donor: ${d.name}<br>
@@ -59,15 +68,15 @@ function searchDonor() {
                     Phone: Hidden<br>
                     <button onclick="sendRequest('${id}')">Request Blood</button><br><br>
                     `;
-
                 }
 
+                // CASE 2: Requested but not accepted
                 else if(d.request && !d.accepted){
 
                     result += `Request sent to ${d.name} (Waiting for donor approval)<br><br>`;
-
                 }
 
+                // CASE 3: Accepted → ALWAYS show phone
                 else if(d.request && d.accepted){
 
                     result += `
@@ -77,11 +86,8 @@ function searchDonor() {
                     Phone: ${d.phone}<br>
                     You can call the donor<br><br>
                     `;
-
                 }
-
             }
-
         });
 
         if(result === ""){
@@ -91,7 +97,6 @@ function searchDonor() {
         document.getElementById("result").innerHTML = result;
 
     });
-
 }
 
 function sendRequest(docId){
@@ -102,9 +107,6 @@ function sendRequest(docId){
     .then(() => {
         alert("Request sent!");
         searchDonor();
-    })
-    .catch((error) => {
-        console.error(error);
     });
 }
 
@@ -148,13 +150,12 @@ function acceptRequest(docId){
     .then(() => {
         alert("Request accepted!");
         showDonorPanel();
-        searchDonor();
-    })
-    .catch((error) => {
-        console.error(error);
+
+        setTimeout(() => {
+            searchDonor();
+        }, 500);
     });
 }
-
 </script>
 
 </head>
@@ -234,11 +235,7 @@ function registerDonor() {
   })
   .then(function() {
     alert("Donor Registered Successfully!");
-  })
-  .catch(function(error) {
-    alert("Error: " + error);
   });
-
 }
 
 </script>
