@@ -45,9 +45,11 @@ function searchDonor() {
 
             let d = doc.data();
             let id = doc.id;
+            let now = Date.now();
+            let cooldownTime = COOLDOWN_MINUTES * 60 * 1000;
+            let isAvailable = (now - d.lastDonated) > cooldownTime;
 
-            if(d.blood.toLowerCase() === blood && d.city.toLowerCase() === city){
-
+            if(d.blood.toLowerCase() === blood && d.city.toLowerCase() === city && isAvailable){
                 if(!d.request){
 
                     result += `
@@ -140,7 +142,8 @@ function showDonorPanel() {
   
 function acceptRequest(docId){
     db.collection("donors").doc(docId).update({
-        accepted: true
+        accepted: true,
+        lastDonated: Date.now()
     })
     .then(() => {
         alert("Request accepted!");
@@ -211,6 +214,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 const db = firebase.firestore();
+const COOLDOWN_MINUTES = 1;
 
 function registerDonor() {
 
@@ -225,7 +229,8 @@ function registerDonor() {
     city: city,
     phone: phone,
     request: false,
-    accepted: false
+    accepted: false,
+    lastDonated: 0
   })
   .then(function() {
     alert("Donor Registered Successfully!");
