@@ -34,10 +34,10 @@ cursor:pointer;
 
 function searchDonor() {
 
-    let blood = document.getElementById("rblood").value;
-    let city = document.getElementById("rcity").value;
+    let blood = document.getElementById("rblood").value.toLowerCase().trim();
+    let city = document.getElementById("rcity").value.toLowerCase().trim();
 
-    db.collection("donors").onSnapshot((querySnapshot) => {
+    db.collection("donors").get().then((querySnapshot) => {
 
         let result = "";
 
@@ -46,7 +46,7 @@ function searchDonor() {
             let d = doc.data();
             let id = doc.id;
 
-            if(d.blood === blood && d.city.toLowerCase() === city.toLowerCase()){
+            if(d.blood.toLowerCase() === blood && d.city.toLowerCase() === city){
 
                 if(!d.request){
 
@@ -82,6 +82,10 @@ function searchDonor() {
 
         });
 
+        if(result === ""){
+            result = "No donors found";
+        }
+
         document.getElementById("result").innerHTML = result;
 
     });
@@ -90,52 +94,61 @@ function searchDonor() {
 
 function sendRequest(docId){
     db.collection("donors").doc(docId).update({
-        request: true
+        request: true,
+        accepted: false
     })
     .then(() => {
-        alert("Request sent to donor!");
-        showDonorPanel();
+        alert("Request sent!");
         searchDonor();
     })
     .catch((error) => {
-        console.error("Error sending request: ", error);
+        console.error(error);
     });
 }
 
-
 function showDonorPanel() {
+
     db.collection("donors")
     .where("request", "==", true)
-    
-      .onSnapshot((querySnapshot) => {
-          let panel = "";
-          querySnapshot.forEach((doc) => {
-    let d = doc.data();
-    let id = doc.id;
+    .get()
+    .then((querySnapshot) => {
 
-    if(!d.accepted){
-        panel += `
-            Request received for ${d.name}<br>
-            <button onclick="acceptRequest('${id}')">Accept Request</button><br><br>
-        `;
-    }
-});
-          document.getElementById("donorPanel").innerHTML = panel;
-      });
+        let panel = "";
+
+        querySnapshot.forEach((doc) => {
+
+            let d = doc.data();
+            let id = doc.id;
+
+            if(!d.accepted){
+                panel += `
+                    Request received for ${d.name}<br>
+                    <button onclick="acceptRequest('${id}')">Accept Request</button><br><br>
+                `;
+            }
+
+        });
+
+        if(panel === ""){
+            panel = "No requests yet";
+        }
+
+        document.getElementById("donorPanel").innerHTML = panel;
+
+    });
 }
-
   
 function acceptRequest(docId){
     db.collection("donors").doc(docId).update({
         accepted: true
     })
     .then(() => {
-        alert("Donor accepted the request!");
-        showDonorPanel(); // refresh donor view
-        searchDonor();    // refresh receiver search results
+        alert("Request accepted!");
+        showDonorPanel();
+        searchDonor();
     })
     .catch((error) => {
-        console.error("Error accepting request: ", error);
+        console.error(error);
     });
 }
 
@@ -202,8 +215,8 @@ const db = firebase.firestore();
 function registerDonor() {
 
   var name = document.getElementById("name").value;
-  var blood = document.getElementById("blood").value;
-  var city = document.getElementById("city").value;
+  var blood = document.getElementById("blood").value.toLowerCase().trim();
+  var city = document.getElementById("city").value.toLowerCase().trim();
   var phone = document.getElementById("phone").value;
 
   db.collection("donors").add({
