@@ -54,7 +54,12 @@ function searchDonor() {
 
             let isAvailable = (now - last) > cooldownTime;
 
-            if(d.blood && d.city){
+            if(
+               d.blood &&
+               d.city &&
+               d.blood.toLowerCase().trim() === blood &&
+               d.city.toLowerCase().trim() === city
+            ){
 
                 // CASE 1: Not requested
                 if(!d.request && isAvailable){
