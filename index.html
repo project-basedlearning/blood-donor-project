@@ -142,9 +142,25 @@ function searchDonor() {
                 });
                 return;
             }
-            if(d.accepted && timePassed < cooldownTime){
-                return;
+           
+          
+            // 🟢 SHOW phone FIRST (for display time)
+            if(d.request && d.accepted && timePassed <= displayTime){
+
+              result += `
+              Donor: ${d.name}<br>
+              Blood: ${d.blood}<br>
+              City: ${d.city}<br>
+              Phone: ${d.phone}<br>
+              You can call the donor<br><br>
+             `;
+              return;
             }
+            // 🔴 HIDE donor during cooldown (after display time)
+           if(d.accepted && timePassed > displayTime && timePassed < cooldownTime){
+              return;
+            }
+            
 
             // 🔴 FILTER MATCH
             if(
