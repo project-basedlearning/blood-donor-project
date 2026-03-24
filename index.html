@@ -39,7 +39,7 @@ function searchDonor() {
     let blood = document.getElementById("rblood").value.toLowerCase().trim();
     let city = document.getElementById("rcity").value.toLowerCase().trim();
 
-    db.collection("donors").get().then((querySnapshot) => {
+    db.collection("donors").onSnapshot((querySnapshot) => {
 
         let result = "";
 
