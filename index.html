@@ -142,6 +142,9 @@ function searchDonor() {
                 });
                 return;
             }
+            if(d.accepted && timePassed < cooldownTime){
+                return;
+            }
 
             // 🔴 FILTER MATCH
             if(
