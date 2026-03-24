@@ -5,7 +5,6 @@
 <title>Blood Donor Finder</title>
 
 <style>
-
 body{
 font-family:Arial;
 background:#f2f2f2;
@@ -27,139 +26,7 @@ color:white;
 border:none;
 cursor:pointer;
 }
-
 </style>
-
-<script>
-
-
-
-function searchDonor() {
-
-    let blood = document.getElementById("rblood").value.toLowerCase().trim();
-    let city = document.getElementById("rcity").value.toLowerCase().trim();
-
-    db.collection("donors").onSnapshot((querySnapshot) => {
-
-        let result = "";
-
-        querySnapshot.forEach((doc) => {
-
-            let d = doc.data();
-            let id = doc.id;
-
-            let last = d.lastDonated || 0;
-            let now = Date.now();
-            let cooldownTime = COOLDOWN_MINUTES * 60 * 1000;
-
-            let isAvailable = (now - last) > cooldownTime;
-
-            if(
-               d.blood &&
-               d.city &&
-               d.blood.toLowerCase().trim() === blood &&
-               d.city.toLowerCase().trim() === city
-            ){
-
-                // CASE 1: Not requested
-                if(!d.request && isAvailable){
-
-                    result += `
-                    Donor: ${d.name}<br>
-                    Blood: ${d.blood}<br>
-                    City: ${d.city}<br>
-                    Phone: Hidden<br>
-                    <button onclick="sendRequest('${id}')">Request Blood</button><br><br>
-                    `;
-                }
-
-                // CASE 2: Requested but not accepted
-                else if(d.request && !d.accepted){
-
-                    result += `Request sent to ${d.name} (Waiting for donor approval)<br><br>`;
-                }
-
-                // CASE 3: Accepted → ALWAYS show phone
-                else if(d.request && d.accepted){
-
-                    result += `
-                    Donor: ${d.name}<br>
-                    Blood: ${d.blood}<br>
-                    City: ${d.city}<br>
-                    Phone: ${d.phone}<br>
-                    You can call the donor<br><br>
-                    `;
-                }
-            }
-        });
-
-        if(result === ""){
-            result = "No donors found";
-        }
-
-        document.getElementById("result").innerHTML = result;
-
-    });
-}
-
-function sendRequest(docId){
-    db.collection("donors").doc(docId).update({
-        request: true,
-        accepted: false
-    })
-    .then(() => {
-        alert("Request sent!");
-        searchDonor();
-    });
-}
-
-function showDonorPanel() {
-
-    db.collection("donors")
-    .where("request", "==", true)
-    .get()
-    .then((querySnapshot) => {
-
-        let panel = "";
-
-        querySnapshot.forEach((doc) => {
-
-            let d = doc.data();
-            let id = doc.id;
-
-            if(!d.accepted){
-                panel += `
-                    Request received for ${d.name}<br>
-                    <button onclick="acceptRequest('${id}')">Accept Request</button><br><br>
-                `;
-            }
-
-        });
-
-        if(panel === ""){
-            panel = "No requests yet";
-        }
-
-        document.getElementById("donorPanel").innerHTML = panel;
-
-    });
-}
-  
-function acceptRequest(docId){
-    db.collection("donors").doc(docId).update({
-        accepted: true,
-        lastDonated: Date.now()
-    })
-    .then(() => {
-        alert("Request accepted!");
-        showDonorPanel();
-
-        setTimeout(() => {
-            searchDonor();
-        }, 500);
-    });
-}
-</script>
 
 </head>
 
@@ -195,37 +62,39 @@ function acceptRequest(docId){
 
 <div class="box">
 <button onclick="showDonorPanel()">Check Requests</button>
-    
+
 <h3>Donor Request Panel</h3>
 
 <p id="donorPanel"></p>
 
-</div> 
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
 
+// 🔴 Firebase Config
 const firebaseConfig = {
-  apiKey: "AIzaSyC4bdhhxPqGl9d5pkJlSZpvV03N1s0IoLg",
-  authDomain: "blood-donor-finder-b72e9.firebaseapp.com",
-  projectId: "blood-donor-finder-b72e9",
-  storageBucket: "blood-donor-finder-b72e9.firebasestorage.app",
-  messagingSenderId: "80536712428",
-  appId: "1:80536712428:web:f928218e42603b294061c9"
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
 };
 
 firebase.initializeApp(firebaseConfig);
-
 const db = firebase.firestore();
-const COOLDOWN_MINUTES = 1;
 
+// 🟢 TIME SETTINGS (change easily)
+const DISPLAY_MINUTES = 2;   // phone visible time
+const COOLDOWN_MINUTES = 1;  // donor hidden time
+
+// 🔵 REGISTER
 function registerDonor() {
 
-  var name = document.getElementById("name").value;
-  var blood = document.getElementById("blood").value.toLowerCase().trim();
-  var city = document.getElementById("city").value.toLowerCase().trim();
-  var phone = document.getElementById("phone").value;
+  let name = document.getElementById("name").value;
+  let blood = document.getElementById("blood").value.toLowerCase().trim();
+  let city = document.getElementById("city").value.toLowerCase().trim();
+  let phone = document.getElementById("phone").value;
 
   db.collection("donors").add({
     name: name,
@@ -236,21 +105,137 @@ function registerDonor() {
     accepted: false,
     lastDonated: 0
   })
-  .then(function() {
-    alert("Donor Registered Successfully!");
-  });
+  .then(() => alert("Donor Registered!"));
+}
+
+// 🔵 SEARCH (REAL-TIME)
+function searchDonor() {
+
+    let blood = document.getElementById("rblood").value.toLowerCase().trim();
+    let city = document.getElementById("rcity").value.toLowerCase().trim();
+
+    db.collection("donors").onSnapshot((snapshot) => {
+
+        let result = "";
+        let now = Date.now();
+
+        snapshot.forEach((doc) => {
+
+            let d = doc.data();
+            let id = doc.id;
+
+            let last = d.lastDonated || 0;
+
+            let displayTime = DISPLAY_MINUTES * 60 * 1000;
+            let cooldownTime = COOLDOWN_MINUTES * 60 * 1000;
+
+            let timePassed = now - last;
+
+            // 🔴 RESET after display time
+            if(d.accepted && timePassed > displayTime){
+                db.collection("donors").doc(id).update({
+                    request: false,
+                    accepted: false
+                });
+                return;
+            }
+
+            // 🔴 FILTER MATCH
+            if(
+               d.blood &&
+               d.city &&
+               d.blood === blood &&
+               d.city === city
+            ){
+
+                // CASE 1: Fresh donor
+                if(!d.request && timePassed > cooldownTime){
+
+                    result += `
+                    Donor: ${d.name}<br>
+                    Blood: ${d.blood}<br>
+                    City: ${d.city}<br>
+                    Phone: Hidden<br>
+                    <button onclick="sendRequest('${id}')">Request Blood</button><br><br>
+                    `;
+                }
+
+                // CASE 2: Waiting
+                else if(d.request && !d.accepted){
+
+                    result += `Request sent to ${d.name} (Waiting for donor approval)<br><br>`;
+                }
+
+                // CASE 3: Accepted (only visible time)
+                else if(d.request && d.accepted && timePassed <= displayTime){
+
+                    result += `
+                    Donor: ${d.name}<br>
+                    Blood: ${d.blood}<br>
+                    City: ${d.city}<br>
+                    Phone: ${d.phone}<br>
+                    You can call the donor<br><br>
+                    `;
+                }
+            }
+
+        });
+
+        if(result === "") result = "No donors found";
+
+        document.getElementById("result").innerHTML = result;
+
+    });
+}
+
+// 🔵 SEND REQUEST
+function sendRequest(id){
+    db.collection("donors").doc(id).update({
+        request: true,
+        accepted: false
+    })
+    .then(() => alert("Request sent!"));
+}
+
+// 🔵 DONOR PANEL
+function showDonorPanel(){
+
+    db.collection("donors")
+    .where("request","==",true)
+    .onSnapshot((snapshot) => {
+
+        let panel = "";
+
+        snapshot.forEach((doc) => {
+
+            let d = doc.data();
+            let id = doc.id;
+
+            if(!d.accepted){
+                panel += `
+                Request for ${d.name}<br>
+                <button onclick="acceptRequest('${id}')">Accept</button><br><br>
+                `;
+            }
+        });
+
+        if(panel === "") panel = "No requests";
+
+        document.getElementById("donorPanel").innerHTML = panel;
+    });
+}
+
+// 🔵 ACCEPT
+function acceptRequest(id){
+
+    db.collection("donors").doc(id).update({
+        accepted: true,
+        lastDonated: Date.now()
+    })
+    .then(() => alert("Accepted!"));
 }
 
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
