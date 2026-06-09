@@ -215,7 +215,8 @@ function searchDonor() {
 function sendRequest(id){
     db.collection("donors").doc(id).update({
         request: true,
-        accepted: false
+        accepted: false,
+        requestedFor: id
     })
     .then(() => alert("Request sent!"));
 }
