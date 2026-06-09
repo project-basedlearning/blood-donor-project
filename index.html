@@ -86,6 +86,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+let unsubscribeSearch = null;
 
 // 🟢 TIME SETTINGS (change easily)
 const DISPLAY_MINUTES = 1;   // phone visible time
@@ -101,24 +102,30 @@ function registerDonor() {
   let phone = document.getElementById("phone").value;
 
   db.collection("donors").add({
-    name: name,
-    blood: blood,
-    city: city,
-    phone: phone,
+    name,
+    blood,
+    city,
+    phone,
     request: false,
     accepted: false,
     lastDonated: 0
   })
-  .then(() => alert("Donor Registered!"));
+  .then(() => {
+    alert("Donor Registered!");
+    console.log("Saved successfully");
+  })
+  .catch((error) => {
+    console.log("REGISTER ERROR:", error);
+    alert("Error: " + error.message);
+  });
 }
-
 // 🔵 SEARCH (REAL-TIME)
 function searchDonor() {
 
     let blood = document.getElementById("rblood").value.toLowerCase().trim();
     let city = document.getElementById("rcity").value.toLowerCase().trim();
-
-    db.collection("donors").onSnapshot((snapshot) => {
+    if (unsubscribeSearch) unsubscribeSearch();
+    unsubscribeSearch = db.collection("donors").onSnapshot((snapshot) => {
 
         let result = "";
         let now = Date.now();
