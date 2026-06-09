@@ -111,20 +111,25 @@ function registerDonor() {
     lastDonated: 0
   })
   .then(() => {
-    alert("Donor Registered!");
     console.log("Saved successfully");
-  })
+    alert("Donor Registered!");
+})
   .catch((error) => {
     console.log("REGISTER ERROR:", error);
     alert("Error: " + error.message);
-  });
+});
 }
 // 🔵 SEARCH (REAL-TIME)
 function searchDonor() {
 
     let blood = document.getElementById("rblood").value.toLowerCase().trim();
     let city = document.getElementById("rcity").value.toLowerCase().trim();
+    if (!blood || !city) {
+    document.getElementById("result").innerHTML = "Please enter blood group and city";
+    return;
+    }
     if (unsubscribeSearch) unsubscribeSearch();
+    console.log("Search started");
     unsubscribeSearch = db.collection("donors").onSnapshot((snapshot) => {
 
         let result = "";
@@ -213,7 +218,8 @@ function searchDonor() {
 
         if(result === "") result = "No donors found";
 
-        document.getElementById("result").innerHTML = result;
+        document.getElementById("result").innerHTML =
+            result || "No donors found";
 
     });
 }
