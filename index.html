@@ -223,7 +223,9 @@ function sendRequest(id){
 
 // 🔵 DONOR PANEL
 function showDonorPanel(){
+    let phone = prompt("Enter your registered phone number");
 
+    if(!phone) return;
     db.collection("donors")
     .where("request","==",true)
     .onSnapshot((snapshot) => {
