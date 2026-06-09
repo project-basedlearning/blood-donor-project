@@ -237,6 +237,10 @@ function showDonorPanel(){
             let d = doc.data();
             let id = doc.id;
 
+            if(d.phone !== phone){
+                return;
+            }
+
             if(!d.accepted){
                 panel += `
                 Request for ${d.name}<br>
